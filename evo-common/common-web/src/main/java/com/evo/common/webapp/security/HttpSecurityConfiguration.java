@@ -7,10 +7,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +25,7 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain;
 
 @Slf4j
+@Configuration
 @EnableWebSecurity
 @EnableFeignClients(basePackages = {"com.evo.common.client"})
 @EnableMethodSecurity(securedEnabled = true)
@@ -62,13 +65,6 @@ public class HttpSecurityConfiguration {
         http.addFilterAfter(this.forbiddenTokenFilter, BearerTokenAuthenticationFilter.class);
         http.addFilterAfter(this.customAuthenticationFilter, BearerTokenAuthenticationFilter.class);
         http.addFilterAfter(this.actionLogFilter, BearerTokenAuthenticationFilter.class);
-        // @formatter:on
-//        if (keycloakEnabled) {
-//            http.oauth2Login(login -> login
-//                            .loginPage("/oauth2/authorization/keycloak")
-//                            .defaultSuccessUrl("/user/token")
-//                    );
-//        }
         return http.build();
     }
 

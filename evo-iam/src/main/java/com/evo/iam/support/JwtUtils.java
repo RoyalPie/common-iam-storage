@@ -2,23 +2,18 @@ package com.evo.iam.support;
 
 import com.evo.iam.config.AuthenticationProperties;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.rsa.crypto.KeyStoreKeyFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.*;
+import java.security.cert.Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Base64;
@@ -36,15 +31,23 @@ public class JwtUtils {
 
     @PostConstruct
     private void initKeyPair() {
-        keyPair = keyPair(this.properties.getKeyStore(), this.properties.getKeyStorePassword(), this.properties.getKeyAlias());
+        this.keyPair = loadKeyPair(this.properties.getKeyStore(), this.properties.getKeyStorePassword(), this.properties.getKeyAlias());
     }
 
-    private KeyPair keyPair(String keyStore, String password, String alias) {
-        KeyStoreKeyFactory keyStoreKeyFactory =
-                new KeyStoreKeyFactory(
-                        new ClassPathResource(keyStore),
-                        password.toCharArray());
-        return keyStoreKeyFactory.getKeyPair(alias);
+    private KeyPair loadKeyPair(String keyStorePath, String password, String alias) {
+        try (InputStream inputStream = new ClassPathResource(keyStorePath).getInputStream()) {
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(inputStream, password.toCharArray());
+
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, password.toCharArray());
+
+            Certificate cert = keyStore.getCertificate(alias);
+            PublicKey publicKey = cert.getPublicKey();
+
+            return new KeyPair(publicKey, privateKey);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load key pair from keystore", e);
+        }
     }
     public static String extractTokenFromRequest(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
