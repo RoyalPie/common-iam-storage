@@ -6,10 +6,7 @@ import com.evo.iam.entity.EmailDetails;
 import com.evo.iam.entity.RefreshToken;
 import com.evo.iam.entity.Role;
 import com.evo.iam.entity.User;
-import com.evo.iam.payload.request.LoginRequest;
-import com.evo.iam.payload.request.OtpRequest;
-import com.evo.iam.payload.request.RefreshTokenRequest;
-import com.evo.iam.payload.request.SignupRequest;
+import com.evo.iam.payload.request.*;
 import com.evo.iam.payload.response.JwtResponse;
 import com.evo.iam.payload.response.MessageResponse;
 import com.evo.iam.repository.RoleRepository;
@@ -19,6 +16,7 @@ import com.evo.iam.service.IService.LoginService;
 import com.evo.iam.service.IService.LogoutService;
 import com.evo.iam.service.refreshTokenService.KeycloakRefreshTokenService;
 import com.evo.iam.service.refreshTokenService.RefreshTokenService;
+import com.evo.iam.support.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +67,9 @@ public class AuthController {
 
     @Autowired
     TokenProvider tokenProvider;
+
+    @Autowired
+    JwtUtils jwtUtils;
 
     @Value("${default.profilePicture}")
     private String defaultProfilePicture;
@@ -176,33 +177,33 @@ public class AuthController {
     public ResponseEntity<?> forgotpassword(@RequestBody EmailDetails details) {
         String resetToken = null;
         try {
-            resetToken = tokenProvider.createAccessToken(details.getRecipient());
+            resetToken = tokenProvider.createResetToken(details.getRecipient());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        details.setMsgBody("\nPlease click the link below to reset your password\n\nhttp://localhost:8080/api/auth/verify-reset-token?" + "email=" + details.getRecipient() + "&token=" + resetToken);
+        details.setMsgBody("\nPlease click the link below to reset your password\n\nhttp://localhost:8082/api/authenticate/verify-reset-token?" + "email=" + details.getRecipient() + "&token=" + resetToken);
         details.setSubject("Change Password Mail");
         return ResponseEntity.ok(emailService.sendSimpleMail(details));
     }
 
-//    @GetMapping("/verify-reset-token")
-//    public ResponseEntity<String> verifyResetToken(@RequestParam String token, @RequestBody ChangePasswordRequest request) {
-//
-//        if (token.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Reset token not found");
-//        }
-//
-//        try {
-//            String email = jwtUtils.extractEmail(token);
-//            if (jwtUtils.validateToken(token, email) && !jwtUtils.isTokenExpired(token)) {
-//                userService.updatePassword(userRepository.findByEmail(email).map(User::getId).orElseThrow(() -> new UsernameNotFoundException("Not found")), request);
-//                return ResponseEntity.ok("Directed to change password page");
-//            } else {
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid reset token");
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    @PostMapping("/verify-reset-token")
+    public ResponseEntity<String> verifyResetToken(@RequestParam String token, @RequestBody ChangePasswordRequest request) {
+
+        if (token.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Reset token not found");
+        }
+
+        try {
+            String email = request.getEmail();
+            if (jwtUtils.validateResetToken(token, email)) {
+                userService.updatePassword(userRepository.findByEmail(email).map(User::getId).orElseThrow(() -> new UsernameNotFoundException("Not found")), request);
+                return ResponseEntity.ok("Change password successful");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid reset token");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

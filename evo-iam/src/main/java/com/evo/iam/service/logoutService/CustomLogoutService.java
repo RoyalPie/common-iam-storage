@@ -1,6 +1,7 @@
 package com.evo.iam.service.logoutService;
 
 import com.evo.common.webapp.security.impl.TokenCacheServiceImpl;
+import com.evo.iam.entity.User;
 import com.evo.iam.payload.response.MessageResponse;
 import com.evo.iam.repository.UserRepository;
 import com.evo.iam.service.IService.LogoutService;
@@ -26,10 +27,12 @@ public class CustomLogoutService implements LogoutService {
     public ResponseEntity<?> logout(HttpServletRequest request, Authentication authentication) throws Exception {
         String token = JwtUtils.extractTokenFromRequest(request);
         tokenCacheService.invalidToken(token);
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(()->new UsernameNotFoundException("User not found"));
+        refreshTokenService.deleteByUser(user.getEmail());
 
         String ip = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
-        userActivityLogService.logActivity(userRepository.findByEmail(authentication.getName()).orElseThrow(()->new UsernameNotFoundException("User not found")), "LOGOUT", ip, userAgent);
+        userActivityLogService.logActivity(user, "LOGOUT", ip, userAgent);
         return ResponseEntity.ok(new MessageResponse("Logout successfully"));
     }
 

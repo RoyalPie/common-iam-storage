@@ -75,5 +75,17 @@ public class TokenProvider {
                 .signWith(SignatureAlgorithm.RS256, keyPair.getPrivate())
                 .compact();
     }
+    public String createResetToken(String email){
+        Long now = Instant.now().toEpochMilli();
+        Date validity = new Date(now + properties.getResetTokenExpiresIn().toMillis());
+
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("email", email)
+                .setIssuedAt(new Date(now))
+                .setExpiration(validity)
+                .signWith(SignatureAlgorithm.RS256, keyPair.getPrivate())
+                .compact();
+    }
 
 }

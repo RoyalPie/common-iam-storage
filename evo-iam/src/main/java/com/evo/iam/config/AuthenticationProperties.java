@@ -18,4 +18,6 @@ public class AuthenticationProperties {
     private Duration accessTokenExpiresIn = Duration.ofHours(1);
 
     private Duration refreshTokenExpiresIn = Duration.ofDays(30);
+
+    private Duration resetTokenExpiresIn = Duration.ofMinutes(5);
 }
