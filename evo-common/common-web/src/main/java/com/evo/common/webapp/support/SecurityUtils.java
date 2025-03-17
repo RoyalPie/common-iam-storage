@@ -1,10 +1,14 @@
 package com.evo.common.webapp.support;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 
 public final class SecurityUtils {
@@ -26,6 +30,21 @@ public final class SecurityUtils {
             return username;
         }
         return null;
+    }
+    public static Long getJwtExpiry(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Invalid JWT format");
+            }
+
+            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+            JsonNode payload = new ObjectMapper().readTree(payloadJson);
+
+            return payload.has("exp") ? payload.get("exp").asLong() * 1000 : 0;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to extract expiration from JWT", e);
+        }
     }
 
 }

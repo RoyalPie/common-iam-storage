@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static com.evo.common.webapp.support.SecurityUtils.getJwtExpiry;
+
 @Service
 public class RefreshTokenService {
     @Value("${jwt.RefreshExpirationMs}")
@@ -46,14 +48,14 @@ public class RefreshTokenService {
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {
-//        try {
-//            if (jwtUtils.isTokenExpired(token.getToken())) {
-//                refreshTokenRepository.delete(token);
-//                throw new IllegalStateException("Refresh token was expired. Please make a new sign-in request");
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
+        try {
+            if (System.currentTimeMillis()-getJwtExpiry(token.getToken())<0) {
+                refreshTokenRepository.delete(token);
+                throw new IllegalStateException("Refresh token was expired. Please make a new sign-in request");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         return token;
     }
@@ -61,5 +63,10 @@ public class RefreshTokenService {
     @Transactional
     public void deleteByUser(String email) {
         refreshTokenRepository.deleteByUser(userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found")));
+    }
+    @Transactional
+    public void deleteByToken(String token) {
+
+        refreshTokenRepository.deleteByToken(token);
     }
 }

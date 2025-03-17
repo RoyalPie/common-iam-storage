@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,7 +30,15 @@ public class ForbiddenTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest httpServletRequest, @NonNull HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
         log.info("ForbiddenTokenFilter");
-        // @TOO check token blacklist
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) securityContext.getAuthentication();
+        String token = authentication.getToken().getTokenValue();
+        if (tokenCacheService.isExisted(TokenCacheService.INVALID_TOKEN_CACHE, token)) {
+            log.warn("Token is invalid");
+            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            httpServletResponse.getWriter().write("Token is invalid");
+            return;
+        }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }
 

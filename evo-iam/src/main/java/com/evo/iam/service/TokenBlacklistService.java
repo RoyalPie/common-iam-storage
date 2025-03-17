@@ -7,5 +7,4 @@ public class TokenBlacklistService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-
 }

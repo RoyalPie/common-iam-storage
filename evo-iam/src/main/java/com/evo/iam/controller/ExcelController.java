@@ -3,6 +3,7 @@ package com.evo.iam.controller;
 import com.evo.iam.service.ExcelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,11 +16,14 @@ public class ExcelController {
     @Autowired
     private ExcelService excelService;
 
+    @PreAuthorize("hasPermission(null, 'FILE.VIEW')")
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportUsers() throws IOException {
         byte[] excelBytes = excelService.exportUsers();
         return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=users.xlsx").body(excelBytes);
     }
+
+    @PreAuthorize("hasPermission(null, 'USER.CREATE')")
     @PostMapping("/import")
     public ResponseEntity<List<String>> importUsers(@RequestParam("file") MultipartFile file) throws IOException {
         return ResponseEntity.ok(excelService.importUsers(file));
