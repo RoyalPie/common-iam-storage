@@ -102,14 +102,14 @@ public class UserController {
 
     @GetMapping("/token")
     public Map<String, Object> getTokens(Authentication authentication, @RequestParam(required = false) String email) throws Exception {
-
-            OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
-                    "keycloak", authentication.getName()
-            );
-            return Map.of(
-                    "access-token", client.getAccessToken().getTokenValue(),
-                    "refresh-token", client.getRefreshToken().getTokenValue()
-            );
+        System.out.println(authentication.getName());
+        OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
+                "keycloak", authentication.getName()
+        );
+        return Map.of(
+                "access-token", client.getAccessToken().getTokenValue(),
+                "refresh-token", client.getRefreshToken().getTokenValue()
+        );
 
     }
 }

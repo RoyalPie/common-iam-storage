@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.bind.annotation.*;
@@ -28,18 +29,9 @@ public class TestController {
     RefreshTokenService refreshTokenService;
 
     @GetMapping("/asas")
-    public Map<String, Object> getTokens(Authentication authentication, @RequestParam(required = false) String email) throws Exception {
-        Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(authentication + "   0");
-        System.out.println(authentication1 + "    1");
-        OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
-                "keycloak", "truongtk1711@gmail.com"
-        );
-        return Map.of(
-                "access-token", client.getAccessToken().getTokenValue(),
-                "refresh-token", client.getRefreshToken().getTokenValue()
-        );
-
+    public String getTokens() throws Exception {
+        OAuth2AuthenticationToken authentication = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
     }
 
     @GetMapping("/")
