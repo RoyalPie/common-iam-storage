@@ -2,7 +2,7 @@ package com.evo.storage.service;
 
 
 import com.evo.storage.dto.FileDownloadDTO;
-import com.evo.storage.dto.FileResponse;
+import com.evo.common.dto.FileResponse;
 import com.evo.storage.entity.File;
 import com.evo.storage.repository.FileRepository;
 import lombok.RequiredArgsConstructor;

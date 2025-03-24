@@ -1,9 +1,10 @@
 package com.evo.storage.controller;
 
 
+import com.evo.common.dto.response.Response;
 import com.evo.storage.config.FileUploadConfig;
 import com.evo.storage.dto.FileDownloadDTO;
-import com.evo.storage.dto.FileResponse;
+import com.evo.common.dto.FileResponse;
 import com.evo.storage.service.FileService;
 import com.evo.storage.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class PublicFileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile[] files,@RequestParam(required = false, name="email") String email, Authentication authentication) throws IOException {
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile[] files, @RequestParam(required = false, name="email") String email, Authentication authentication) throws IOException {
         if (files.length == 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File is empty!");
         }
@@ -86,7 +87,8 @@ public class PublicFileController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Invalid file extension! Allowed extensions: " + fileUploadConfig.getAllowedExtensions());
             }
-            FileResponse response = fileService.uploadFile(file,email == null ? authentication.getPrincipal().toString() : email, "public");
+
+            FileResponse response = fileService.uploadFile(file,email == null ? authentication.getName() : email, "public");
             responses.add(response);
         }
 

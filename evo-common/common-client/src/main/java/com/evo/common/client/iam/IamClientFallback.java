@@ -43,6 +43,7 @@ public class IamClientFallback implements FallbackFactory<IamClient> {
             return Response.fail(
                     new ResponseException(ServiceUnavailableError.IAM_SERVICE_UNAVAILABLE_ERROR));
         }
+
         @Override
         public Response<?> invalidRefreshToken(String refreshToken) {
             if (cause instanceof ForwardInnerAlertException) {
