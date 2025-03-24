@@ -1,4 +1,4 @@
-package com.evo.storage.dto;
+package com.evo.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,5 +14,5 @@ public class FileResponse {
     private String ownerId;
     private String accessType;
     private String fileSize;
-    private String url;
+    private String storageFileName;
 }

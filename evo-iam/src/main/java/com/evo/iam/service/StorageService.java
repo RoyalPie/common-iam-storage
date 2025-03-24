@@ -1,7 +1,10 @@
 package com.evo.iam.service;
 
+import com.evo.common.client.storage.StorageClient;
+import com.evo.common.dto.FileResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -16,12 +19,17 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class StorageService {
     @Autowired
     private KeycloakService keycloakService;
+    private final StorageClient storageClient;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    public List<FileResponse> uploadPublicFile(MultipartFile[] files) {
+        return storageClient.uploadPublicFiles(files);
+    }
     public Map<String, String> uploadFile(MultipartFile[] files, String email) throws IOException {
         String token = keycloakService.getStorageAccessToken();
 

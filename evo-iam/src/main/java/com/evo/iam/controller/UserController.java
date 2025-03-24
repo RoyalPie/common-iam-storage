@@ -1,6 +1,7 @@
 package com.evo.iam.controller;
 
 
+import com.evo.common.dto.FileResponse;
 import com.evo.iam.dto.RoleDto;
 import com.evo.iam.dto.UserDto;
 import com.evo.iam.entity.User;
@@ -27,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -86,18 +88,19 @@ public class UserController {
     }
 
     @PostMapping("/change-profile-image")
-    public ResponseEntity<?> updateProfileImage(@RequestParam("image") MultipartFile[] file, @AuthenticationPrincipal String email) throws IOException {
-        Map data = this.storageService.uploadFile(file, email);
-        String imageUrl = data.get("url").toString();
-        userService.updateProfileImage(email, imageUrl);
-        return new ResponseEntity<>(userRepository.findByEmail(email).map(User::getProfilePicturePath), HttpStatus.OK);
+    public ResponseEntity<?> updateProfileImage(@RequestParam("image") MultipartFile[] file, Authentication authentication) throws IOException {
+
+        List<FileResponse> res = storageService.uploadPublicFile(file);
+        String imageUrl = res.getFirst().getStorageFileName();
+        userService.updateProfileImage(authentication.getName(), imageUrl);
+        return new ResponseEntity<>(userRepository.findByEmail(authentication.getName()).map(User::getProfilePicturePath), HttpStatus.OK);
     }
 
     @PostMapping("/upload-file")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile[] file, @AuthenticationPrincipal String email) throws IOException {
-        Map data = this.storageService.uploadFile(file, email);
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile[] file) throws IOException {
+        List<FileResponse> res = storageService.uploadPublicFile(file);
 
-        return ResponseEntity.ok("");
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/token")

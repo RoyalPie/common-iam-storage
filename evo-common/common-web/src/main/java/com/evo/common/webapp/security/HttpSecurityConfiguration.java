@@ -23,6 +23,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Slf4j
 @Configuration
@@ -35,6 +38,21 @@ public class HttpSecurityConfiguration {
     private final CustomAuthenticationFilter customAuthenticationFilter;
     private final ForbiddenTokenFilter forbiddenTokenFilter;
     private final JwtProperties jwtProperties;
+    private final String[] PUBLIC_ENDPOINT = {
+            "/health",
+            "/api/certificate/.well-known/jwks.json",
+            "/api/authenticate/**",
+            "/api/test/**",
+            "/actuator/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-config",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/swagger-doc/**",
+            "/swagger-resources/**",
+
+    };
 
     public HttpSecurityConfiguration(ActionLogFilter actionLogFilter,
                                      CustomAuthenticationFilter customAuthenticationFilter,
@@ -47,15 +65,13 @@ public class HttpSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeHttpRequests ->
                         authorizeHttpRequests
-                                .requestMatchers("/").permitAll()
-                                .requestMatchers("/health").permitAll()
-                                .requestMatchers("/api/certificate/.well-known/jwks.json").permitAll()
-                                .requestMatchers("/api/public/**").permitAll()
-                                .requestMatchers("/api/authenticate/**").permitAll()
+                                .requestMatchers(PUBLIC_ENDPOINT).permitAll()
                                 .requestMatchers("/api/**").authenticated()
                                 .requestMatchers("/user/**").authenticated()
                                 .anyRequest().authenticated()
@@ -87,5 +103,16 @@ public class HttpSecurityConfiguration {
         expressionHandler.setPermissionEvaluator(permissionEvaluator);
         return expressionHandler;
     }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("*");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(false);
 
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

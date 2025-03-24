@@ -23,14 +23,16 @@ public class KeycloakLoginService implements LoginService {
 
     @Override
     public ResponseEntity<?> authenticate(LoginRequest loginRequest) {
-        TokenDTO tokenDTO = keyCloakClient.getToken(GetTokenRequest.builder()
-                .grant_type("password")
-                .client_id(clientId)
-                .client_secret(clientSecret)
-                .scope("openid")
-                .username(loginRequest.getUsername())
-                .password(loginRequest.getPassword())
-                .build());
+        TokenDTO tokenDTO = keyCloakClient.getToken(
+                GetTokenRequest.builder()
+                        .grant_type("password")
+                        .client_id(clientId)
+                        .client_secret(clientSecret)
+                        .scope("openid")
+                        .username(loginRequest.getUsername())
+                        .password(loginRequest.getPassword())
+                        .build());
+
         return ResponseEntity.ok(tokenDTO);
     }
 }
