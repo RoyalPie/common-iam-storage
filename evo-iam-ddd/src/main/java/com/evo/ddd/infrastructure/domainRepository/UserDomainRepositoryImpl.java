@@ -75,6 +75,7 @@ public class UserDomainRepositoryImpl extends AbstractDomainRepository<User, Use
     @Override
     public User getByUsername(String username) {
         UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println(userEntity);
         return this.enrich(userEntityMapper.toDomainModel(userEntity));
     }
 

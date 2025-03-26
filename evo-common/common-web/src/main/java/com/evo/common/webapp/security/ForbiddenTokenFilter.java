@@ -33,6 +33,7 @@ public class ForbiddenTokenFilter extends OncePerRequestFilter {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         JwtAuthenticationToken authentication = (JwtAuthenticationToken) securityContext.getAuthentication();
         String token = authentication.getToken().getTokenValue();
+
         if (tokenCacheService.isExisted(TokenCacheService.INVALID_TOKEN_CACHE, token)) {
             log.warn("Token is invalid");
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

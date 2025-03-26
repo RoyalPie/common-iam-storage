@@ -2,11 +2,15 @@ package com.evo.ddd.infrastructure.support;
 
 
 import com.evo.ddd.application.config.AuthenticationProperties;
+import com.evo.ddd.application.config.TokenProvider;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -23,33 +27,8 @@ import java.util.Objects;
 
 @Component
 public class JwtUtils {
-    private final AuthenticationProperties properties;
-    private KeyPair keyPair;
-
-    public JwtUtils(AuthenticationProperties properties) {
-        this.properties = properties;
-    }
-
-    @PostConstruct
-    private void initKeyPair() {
-        this.keyPair = loadKeyPair(this.properties.getKeyStore(), this.properties.getKeyStorePassword(), this.properties.getKeyAlias());
-    }
-
-    private KeyPair loadKeyPair(String keyStorePath, String password, String alias) {
-        try (InputStream inputStream = new ClassPathResource(keyStorePath).getInputStream()) {
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(inputStream, password.toCharArray());
-
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, password.toCharArray());
-
-            Certificate cert = keyStore.getCertificate(alias);
-            PublicKey publicKey = cert.getPublicKey();
-
-            return new KeyPair(publicKey, privateKey);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load key pair from keystore", e);
-        }
-    }
+    @Autowired
+    private TokenProvider tokenProvider;
     public static String extractTokenFromRequest(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
 
@@ -67,13 +46,21 @@ public class JwtUtils {
         byte[] hash = digest.digest(signature.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(hash);
     }
-    public boolean validateResetToken(String token, String email) throws ParseException, JOSEException {
 
-        PublicKey publicKey = keyPair.getPublic();
+    public JWTClaimsSet extractClaims(String token) throws ParseException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) tokenProvider.getKeyPair().getPublic());
+        return signedJWT.getJWTClaimsSet();
+    }
+    public String extractEmailFromToken(String token) throws ParseException {
+        JWTClaimsSet claimsSet = extractClaims(token);
+        return claimsSet.getSubject().isEmpty() ? claimsSet.getClaim("username").toString() : claimsSet.getSubject();
+    }
+    public boolean validateToken(String token, String username) throws ParseException, JOSEException {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
+            JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) tokenProvider.getKeyPair().getPublic());
 
-            RSASSAVerifier verifier = new RSASSAVerifier((RSAPublicKey) publicKey);
             boolean isSignatureValid = signedJWT.verify(verifier);
 
             Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
@@ -81,11 +68,12 @@ public class JwtUtils {
 
             String verifyEmail = signedJWT.getJWTClaimsSet().getSubject();
 
-            return isSignatureValid && !isExpired && Objects.equals(verifyEmail, email);
+            return isSignatureValid && !isExpired && Objects.equals(verifyEmail, username);
 
         } catch (Exception e) {
             System.out.println("JWT verification failed: " + e.getMessage());
             return false;
         }
     }
+
 }

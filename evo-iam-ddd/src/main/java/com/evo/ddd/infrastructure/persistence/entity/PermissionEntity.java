@@ -16,6 +16,7 @@ import java.util.UUID;
 @Table(name = "permissions")
 public class PermissionEntity extends AuditEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private UUID id;
 

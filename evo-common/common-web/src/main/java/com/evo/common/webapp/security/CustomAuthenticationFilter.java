@@ -62,8 +62,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                     .collect(Collectors.toSet());
         }
         String username;
-        if (StringUtils.hasText(token.getClaimAsString("email"))) {
-            username = token.getClaimAsString("email");
+        if (StringUtils.hasText(token.getClaimAsString("username"))) {
+            username = token.getClaimAsString("username");
         } else {
             username = token.getClaimAsString("preferred_username");
         }
@@ -88,8 +88,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         // Call lấy UserAuthority từ IAM dựa vào AuthorityService lưu ý với service khác IAM thì impl sẽ là RemoteAuthorityServiceImpl,
         // IAM thì sẽ dùng AuthorityServiceImpl(@Primary)
         String username;
-        if (StringUtils.hasText(token.getClaimAsString("email"))) {
-            username = token.getClaimAsString("email");
+        if (StringUtils.hasText(token.getClaimAsString("username"))) {
+            username = token.getClaimAsString("username");
         } else {
             username = token.getClaimAsString("preferred_username");
         }
