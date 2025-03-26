@@ -29,7 +29,7 @@ public class User extends Auditor {
     private String address;
     private int yearsOfExperience;
     private String password;
-    private boolean locked;
+    private boolean active;
     private UserRole userRole;
     private UserActivityLog userActivityLog;
 
@@ -43,7 +43,7 @@ public class User extends Auditor {
         this.dob = cmd.getDob();
         this.address = cmd.getAddress();
         this.yearsOfExperience = cmd.getYearsOfExperience();
-        this.locked = false;
+        this.active = true;
         this.providerId = cmd.getProviderId();
         if(cmd.getUserRole() != null) {
             this.userRole = new UserRole(cmd.getUserRole(), this.userID);

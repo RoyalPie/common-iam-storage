@@ -36,10 +36,10 @@ public class JwkAuthenticationManagerResolver implements
     private String toIssuerId(HttpServletRequest request) {
         String token = this.resolver.resolve(request);
         try {
-            if (StringUtils.hasText((String) JWTParser.parse(token).getJWTClaimsSet().getClaim("email"))
+            if (StringUtils.hasText((String) JWTParser.parse(token).getJWTClaimsSet().getClaim("username"))
                     && StringUtils.hasText((String) JWTParser.parse(token).getJWTClaimsSet().getClaim("preferred_username"))) {
                 return "keycloak";
-            }else if (StringUtils.hasText((String) JWTParser.parse(token).getJWTClaimsSet().getClaim("email"))) {
+            }else if (StringUtils.hasText((String) JWTParser.parse(token).getJWTClaimsSet().getClaim("username"))) {
                 return "internal";
             } else if (StringUtils.hasText((String) JWTParser.parse(token).getJWTClaimsSet().getClaim("preferred_username"))) {
                 return "sso";

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface UserEntityRepository extends JpaRepository<UserEntity, UUID>, UserEntityRepositoryCustom {
-    @Query("from UserEntity e where e.isActive = true and lower(e.username) = lower(:username)")
+    @Query("from UserEntity e where e.active = true and lower(e.username) = lower(:username)")
     Optional<UserEntity> findByUsername(@Param("username") String username);
     boolean existsByUsername(String username);
 }

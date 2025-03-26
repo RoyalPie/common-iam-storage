@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class Role extends Auditor {
     private UUID id;
     private String name;
-    private boolean root;
+    private boolean isRoot;
     private boolean deleted;
     private List<RolePermission> rolePermissions;
 
@@ -35,7 +35,7 @@ public class Role extends Auditor {
         }
         this.name = cmd.getName();
         this.deleted= cmd.isDeleted();
-        this.root = cmd.isRoot();
+        this.isRoot = cmd.isRoot();
 
         this.rolePermissions = new ArrayList<>();
         if (cmd.getRolePermission() != null) {
@@ -49,7 +49,7 @@ public class Role extends Auditor {
     public void update(CreateOrUpdateRoleCmd cmd) {
         this.name = cmd.getName();
         this.deleted = cmd.isDeleted();
-        this.root = cmd.isRoot();
+        this.isRoot = cmd.isRoot();
 //tách riêng  ra 1 hàm phục vụ cho việc update v tạo mới
         if (this.rolePermissions == null) {
             this.rolePermissions = new ArrayList<>();

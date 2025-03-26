@@ -15,33 +15,32 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
-@Primary
-@Slf4j
-@RequiredArgsConstructor
-public class AuthorityServiceImpl implements AuthorityService {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Override
-    public UserAuthority getUserAuthority(UUID userId) { return null; }
-
-    @Override
-    public UserAuthority getUserAuthority(String username) {
-        User user = userRepository.findByEmail(username).orElseThrow(()->new UsernameNotFoundException("User not found with email "+username));
-
-        return UserAuthority.builder()
-                .userId(user.getId())
-                .isRoot(user.getRoles().stream().anyMatch(Role::getIsRoot))
-                .grantedPermissions(user.getRoles().stream()
-                        .flatMap(role -> role.getPermissions().stream())
-                        .map(permission -> permission.getResource()+"."+permission.getPermission())
-                        .collect(Collectors.toList()))
-                .build();
-    }
-
-    @Override
-    public UserAuthority getClientAuthority(UUID clientId) {
-        return null;
-    }
-}
+//@Service
+//@Slf4j
+//@RequiredArgsConstructor
+//public class AuthorityServiceImpl implements AuthorityService {
+//    @Autowired
+//    private UserRepository userRepository;
+//
+//    @Override
+//    public UserAuthority getUserAuthority(UUID userId) { return null; }
+//
+//    @Override
+//    public UserAuthority getUserAuthority(String username) {
+//        User user = userRepository.findByEmail(username).orElseThrow(()->new UsernameNotFoundException("User not found with email "+username));
+//
+//        return UserAuthority.builder()
+//                .userId(user.getId())
+//                .isRoot(user.getRoles().stream().anyMatch(Role::getIsRoot))
+//                .grantedPermissions(user.getRoles().stream()
+//                        .flatMap(role -> role.getPermissions().stream())
+//                        .map(permission -> permission.getResource()+"."+permission.getPermission())
+//                        .collect(Collectors.toList()))
+//                .build();
+//    }
+//
+//    @Override
+//    public UserAuthority getClientAuthority(UUID clientId) {
+//        return null;
+//    }
+//}

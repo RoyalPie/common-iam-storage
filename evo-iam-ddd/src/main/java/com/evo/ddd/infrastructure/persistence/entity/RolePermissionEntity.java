@@ -17,6 +17,7 @@ import java.util.UUID;
 @Table(name = "role_permissions")
 public class RolePermissionEntity extends AuditEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private UUID id;
 

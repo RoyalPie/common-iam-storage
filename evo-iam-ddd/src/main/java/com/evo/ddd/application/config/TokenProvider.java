@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.io.ClassPathResource;
@@ -23,6 +24,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+@Getter
 @Component
 @EnableConfigurationProperties(AuthenticationProperties.class)
 @Slf4j
@@ -69,18 +71,19 @@ public class TokenProvider {
         return new Date(Instant.now().toEpochMilli() + durationMillis);
     }
 
-    private String createToken(String email, long durationMillis) {
+    private String createToken(String username, long durationMillis) {
         return Jwts.builder()
-                .setSubject(email)
-                .claim("email", email)
+                .setId(UUID.randomUUID().toString())
+                .setSubject(username)
+                .claim("username", username)
                 .setIssuedAt(new Date())
                 .setExpiration(getExpirationDate(durationMillis))
                 .signWith(SignatureAlgorithm.RS256, keyPair.getPrivate())
                 .compact();
     }
 
-    public String createAccessToken(String email) {
-        return createToken(email, properties.getAccessTokenExpiresIn().toMillis());
+    public String createAccessToken(String username) {
+        return createToken(username, properties.getAccessTokenExpiresIn().toMillis());
     }
 
     public String createRefreshToken(String email) {

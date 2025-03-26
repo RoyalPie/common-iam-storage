@@ -25,8 +25,9 @@ import java.util.UUID;
 @Table(name = "users")
 public class UserEntity extends AuditEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID id;
+    private UUID userID;
 
     @Column(name = "keycloak_id")
     private String keycloakUserId;
@@ -75,6 +76,6 @@ public class UserEntity extends AuditEntity {
     private boolean deleted = false;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
+    private boolean active = true;
 
 }
