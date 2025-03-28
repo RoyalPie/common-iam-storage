@@ -47,12 +47,18 @@ public class JwtUtils {
         return Base64.getEncoder().encodeToString(hash);
     }
 
-    public JWTClaimsSet extractClaims(String token) throws ParseException {
+    public JWTClaimsSet extractClaims(String token) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);
         JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) tokenProvider.getKeyPair().getPublic());
+        boolean isSignatureValid = signedJWT.verify(verifier);
+        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean isExpired = expirationTime != null && expirationTime.before(new Date());
+        if(!isSignatureValid && isExpired){
+            return null;
+        }
         return signedJWT.getJWTClaimsSet();
     }
-    public String extractEmailFromToken(String token) throws ParseException {
+    public String extractEmailFromToken(String token) throws ParseException, JOSEException {
         JWTClaimsSet claimsSet = extractClaims(token);
         return claimsSet.getSubject().isEmpty() ? claimsSet.getClaim("username").toString() : claimsSet.getSubject();
     }

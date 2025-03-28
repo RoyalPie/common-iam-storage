@@ -2,7 +2,7 @@ package com.evo.storage.controller;
 
 
 import com.evo.storage.config.FileUploadConfig;
-import com.evo.common.dto.FileResponse;
+import com.evo.common.dto.response.FileResponse;
 import com.evo.storage.service.FileService;
 import com.evo.storage.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;

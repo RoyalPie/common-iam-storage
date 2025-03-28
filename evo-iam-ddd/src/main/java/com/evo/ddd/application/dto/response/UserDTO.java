@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.UUID;
 
 @Data
@@ -13,16 +15,13 @@ import java.util.UUID;
 @NoArgsConstructor
 public class UserDTO {
     private UUID userID;
-    private UUID providerId;
+    private UUID keycloakUserId;
     private String email;
     private String username;
     private String firstName;
     private String lastName;
-    private String dob;
-    private String street;
-    private String ward;
-    private String district;
-    private String city;
+    private Date dateOfBirth;
+    private String address;
     private int yearsOfExperience;
     private UUID avatarFileId;
 }

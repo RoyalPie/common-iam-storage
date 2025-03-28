@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@JsonIgnoreProperties(value = {"type", "temporary"}, allowSetters = true)
+@JsonIgnoreProperties(value = {"temporary"}, allowSetters = true)
 public class ResetKeycloakPasswordCmd {
     private String type = "password";
     private String value;

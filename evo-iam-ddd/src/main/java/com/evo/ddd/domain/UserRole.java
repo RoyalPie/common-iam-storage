@@ -6,6 +6,7 @@ import com.evo.ddd.infrastructure.support.IdUtils;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = false)
@@ -19,9 +20,22 @@ public class UserRole extends Auditor {
     private UUID userId;
     private UUID roleId;
 
-    public UserRole(CreateUserRoleCmd createUserRoleCmd, UUID userId) {
+    public UserRole(CreateUserRoleCmd cmd) {
         this.id = IdUtils.newUUID();
-        this.userId = userId;
-        this.roleId = createUserRoleCmd.getRoleId();
+        this.userId = cmd.getUserId();
+        this.roleId = cmd.getRoleId();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        UserRole that = (UserRole) o;
+        return Objects.equals(userId, that.userId) && Objects.equals(roleId, that.roleId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, roleId);
     }
 }

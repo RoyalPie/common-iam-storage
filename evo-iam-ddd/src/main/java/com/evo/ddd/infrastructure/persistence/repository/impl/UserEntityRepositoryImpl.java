@@ -32,7 +32,7 @@ public class UserEntityRepositoryImpl implements UserEntityRepositoryCustom {
 
     private String createWhereQuery(String keyword, Map<String, Object> values) {
         StringBuilder sql = new StringBuilder();
-        sql.append(" where e.locked = false");
+        sql.append(" where e.active = true");
         if (!keyword.isBlank()) {
             sql.append(
                     " and ( lower(e.username) like :keyword"

@@ -1,7 +1,7 @@
 package com.evo.ddd.infrastructure.adapter.keycloak;
 
-import com.evo.ddd.application.dto.request.GetTokenRequest;
-import com.evo.ddd.application.dto.request.LogoutRequest;
+import com.evo.ddd.application.dto.request.identityKeycloak.GetTokenRequest;
+import com.evo.ddd.application.dto.request.identityKeycloak.LogoutRequest;
 import com.evo.ddd.application.dto.request.UpdateUserRequest;
 import com.evo.ddd.application.dto.request.identityKeycloak.CreateUserKeycloakRequest;
 import com.evo.ddd.application.dto.request.identityKeycloak.RefreshTokenRequest;
