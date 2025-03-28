@@ -13,4 +13,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateUserRoleCmd {
     private UUID roleId;
+    private UUID userId;
 }

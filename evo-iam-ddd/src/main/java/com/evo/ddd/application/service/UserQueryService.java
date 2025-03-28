@@ -10,7 +10,7 @@ public interface UserQueryService {
     UserDTO getUserInfo(String username);
     Long totalUsers(SearchUserRequest request);
     List<UserDTO> search(SearchUserRequest searchUserRequest);
-//    void exportUserListToExcel(SearchUserRequest searchUserRequest);
+    byte[] exportUserListToExcel(SearchUserRequest searchUserRequest);
     UserAuthority getUserAuthority(String username);
 //    UserAuthority getClientAuthority(String clientId);
 }

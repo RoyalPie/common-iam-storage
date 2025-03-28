@@ -1,5 +1,6 @@
 package com.evo.ddd.application.dto.mapper;
 
+import com.evo.common.mapper.DTOMapper;
 import com.evo.ddd.application.dto.response.PermissionDTO;
 import com.evo.ddd.domain.Permission;
 import com.evo.ddd.infrastructure.persistence.entity.PermissionEntity;

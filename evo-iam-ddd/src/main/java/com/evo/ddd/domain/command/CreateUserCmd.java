@@ -1,8 +1,10 @@
 package com.evo.ddd.domain.command;
 
+import com.evo.ddd.domain.UserRole;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -11,14 +13,17 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateUserCmd {
-    private UUID providerId;
+    private UUID keycloakUserId;
     private String username;
     private String password;
     private String email;
     private String firstName;
     private String lastName;
-    private LocalDate dob;
-    private String address;
+    private Date dateOfBirth;
+    private String street;
+    private String ward;
+    private String district;
+    private String city;
     private int yearsOfExperience;
-    private CreateUserRoleCmd userRole;
+    private List<CreateUserRoleCmd> userRole;
 }

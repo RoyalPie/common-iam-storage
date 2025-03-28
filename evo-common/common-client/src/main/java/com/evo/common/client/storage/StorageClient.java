@@ -1,8 +1,7 @@
 package com.evo.common.client.storage;
 
 import com.evo.common.config.StorageClientConfiguration;
-import com.evo.common.dto.FileResponse;
-import com.evo.common.dto.response.Response;
+import com.evo.common.dto.response.FileResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;

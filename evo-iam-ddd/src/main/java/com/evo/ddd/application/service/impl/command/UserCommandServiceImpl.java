@@ -1,9 +1,9 @@
 package com.evo.ddd.application.service.impl.command;
 
-import com.evo.common.dto.FileResponse;
 import com.evo.ddd.application.dto.mapper.UserDTOMapper;
 import com.evo.ddd.application.dto.request.ChangePasswordRequest;
 import com.evo.ddd.application.dto.request.CreateUserRequest;
+import com.evo.ddd.application.dto.request.CreateUserRoleRequest;
 import com.evo.ddd.application.dto.request.UpdateUserRequest;
 import com.evo.ddd.application.dto.response.UserDTO;
 import com.evo.ddd.application.mapper.CommandMapper;
@@ -57,15 +57,16 @@ public class UserCommandServiceImpl implements UserCommandService {
             CreateUserCmd createUserCmd = commandMapper.from(request);
             createUserCmd.setPassword(passwordEncoder.encode(createUserCmd.getPassword()));
 
-            createUserCmd.setProviderId(UUID.fromString(keycloakCommandClient.createKeycloakUser(request)));
+            createUserCmd.setKeycloakUserId(UUID.fromString(keycloakCommandClient.createKeycloakUser(request)));
             Role role = roleDomainRepository.findByName("ROLE_USER");
             User user = new User(createUserCmd);
-            CreateUserRoleCmd createUserRoleCmd = new CreateUserRoleCmd(role.getId());
+            CreateUserRoleCmd createUserRoleCmd = new CreateUserRoleCmd(role.getId(), user.getUserID());
             WriteLogCmd logCmd = new WriteLogCmd();
             logCmd.setActivity("SignUp");
             UserActivityLog log = new UserActivityLog(logCmd);
-            UserRole userRole = new UserRole(createUserRoleCmd, user.getUserID());
-            user.setUserRole(userRole);
+            List<UserRole> userRoles = new ArrayList<>();
+            userRoles.add(new UserRole(createUserRoleCmd));
+            user.setUserRole(userRoles);
             user.setUserActivityLog(log);
             user = userDomainRepository.save(user);
             return userDTOMapper.domainModelToDTO(user);
@@ -81,7 +82,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         CreateUserCmd createUserCmd = commandMapper.from(request);
         createUserCmd.setPassword(passwordEncoder.encode(createUserCmd.getPassword()));
 
-        createUserCmd.setProviderId(keycloakUserId);
+        createUserCmd.setKeycloakUserId(keycloakUserId);
         User user = new User(createUserCmd);
         userDomainRepository.save(user);
         return userDTOMapper.domainModelToDTO(user);
@@ -92,7 +93,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         ChangePasswordCmd changePasswordCmd = commandMapper.from(request);
 
         User user = userDomainRepository.getByUsername(username);
-        UUID keycloakUserId = user.getProviderId();
+        UUID keycloakUserId = user.getKeycloakUserId();
 
         String token = keycloakQueryClient.getClientToken();
         if(passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
@@ -106,6 +107,14 @@ public class UserCommandServiceImpl implements UserCommandService {
         } else {
             throw new RuntimeException("Auth Error");
         }
+    }
+
+    @Override
+    public String assignRole(String username, UpdateUserRequest request) {
+        UpdateUserCmd cmd = commandMapper.from(request);
+        User user = userDomainRepository.getByUsername(username);
+        user.update(cmd);
+        return "";
     }
 
     @Override
@@ -136,17 +145,17 @@ public class UserCommandServiceImpl implements UserCommandService {
                 CreateUserRequest.CreateUserRequestBuilder createUserRequestBuilder = CreateUserRequest.builder();
 
                 int rowIndex = row.getRowNum() + 1;
-                Cell usernameCell = row.getCell(0);
-                Cell passwordCell = row.getCell(1);
-                Cell emailNameCell = row.getCell(2);
-                Cell firstNameCell = row.getCell(3);
-                Cell lastNameCell = row.getCell(4);
-                Cell dobCell = row.getCell(5);
-                Cell streetCell = row.getCell(6);
-                Cell wardCell = row.getCell(7);
-                Cell districtCell = row.getCell(8);
-                Cell cityCell = row.getCell(9);
-                Cell yearsOfExperienceCell = row.getCell(10);
+                Cell usernameCell = row.getCell(1);
+                Cell passwordCell = row.getCell(2);
+                Cell emailNameCell = row.getCell(3);
+                Cell firstNameCell = row.getCell(4);
+                Cell lastNameCell = row.getCell(5);
+                Cell dobCell = row.getCell(6);
+                Cell streetCell = row.getCell(7);
+                Cell wardCell = row.getCell(8);
+                Cell districtCell = row.getCell(9);
+                Cell cityCell = row.getCell(10);
+                Cell yearsOfExperienceCell = row.getCell(11);
 
                 if (usernameCell != null) {
                     String username = usernameCell.getStringCellValue().trim();
@@ -248,7 +257,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.setActive(!enabled);
         userDomainRepository.save(user);
         String token = keycloakQueryClient.getClientToken();
-        keycloakIdentityClient.lockUser("Bearer " + token, user.getProviderId().toString(), LockUserCmd.builder().enabled(enabled).build());
+        keycloakIdentityClient.lockUser("Bearer " + token, user.getKeycloakUserId().toString(), LockUserCmd.builder().enabled(enabled).build());
     }
 
 }

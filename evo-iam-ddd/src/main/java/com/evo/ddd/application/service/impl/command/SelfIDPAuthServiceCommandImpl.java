@@ -3,6 +3,7 @@ package com.evo.ddd.application.service.impl.command;
 import com.evo.ddd.application.config.TokenProvider;
 import com.evo.ddd.application.dto.request.LoginRequest;
 import com.evo.ddd.application.dto.request.VerifyOtpRequest;
+import com.evo.ddd.application.dto.request.identityKeycloak.GetTokenRequest;
 import com.evo.ddd.application.dto.response.TokenDTO;
 import com.evo.ddd.application.mapper.CommandMapper;
 import com.evo.ddd.application.service.AuthServiceCommand;
@@ -13,9 +14,12 @@ import com.evo.ddd.domain.command.ResetKeycloakPasswordCmd;
 import com.evo.ddd.domain.command.VerifyOtpCmd;
 import com.evo.ddd.domain.command.WriteLogCmd;
 import com.evo.ddd.domain.repository.UserDomainRepository;
+import com.evo.ddd.infrastructure.adapter.keycloak.KeycloakIdentityClient;
 import com.evo.ddd.infrastructure.adapter.mail.EmailService;
 import com.evo.ddd.infrastructure.support.JwtUtils;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +41,7 @@ public class SelfIDPAuthServiceCommandImpl implements AuthServiceCommand {
     private final UserDomainRepository userDomainRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final KeycloakIdentityClient keycloakIdentityClient;
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenProvider tokenProvider;
     private final JwtUtils jwtUtils;
@@ -44,9 +49,12 @@ public class SelfIDPAuthServiceCommandImpl implements AuthServiceCommand {
 
     @Value("${otp.expiration}")
     private Long otpExpiration;
-
     @Value("${jwt.RefreshExpirationMs}")
     private Long refreshExpiration;
+    @Value("${keycloak.iam.client-id}")
+    private String clientId;
+    @Value("${keycloak.iam..client-secret}")
+    private String clientSecret;
 
     @Override
     public TokenDTO authenticate(LoginRequest loginRequest) {
@@ -65,11 +73,10 @@ public class SelfIDPAuthServiceCommandImpl implements AuthServiceCommand {
 
         return null;
     }
-    public TokenDTO verifyOTP(VerifyOtpRequest request) throws ParseException {
+    public TokenDTO verifyOTP(VerifyOtpRequest request) throws ParseException, JOSEException {
         VerifyOtpCmd verifyOtpCmd = commandMapper.from(request);
 
         boolean isValid = Objects.equals(redisTemplate.opsForValue().get(verifyOtpCmd.getUsername()), verifyOtpCmd.getOtp());
-        System.out.println(redisTemplate.opsForValue().get(verifyOtpCmd.getUsername()));
         if(!redisTemplate.hasKey(verifyOtpCmd.getUsername()) || !isValid){
             throw new RuntimeException("INVALID_CREDENTIALS");
         }
@@ -108,16 +115,51 @@ public class SelfIDPAuthServiceCommandImpl implements AuthServiceCommand {
 
     @Override
     public TokenDTO refresh(String refreshToken) {
-        return null;
+        try {
+            JWTClaimsSet claims = jwtUtils.extractClaims(refreshToken);
+            String username = claims.getSubject();
+            var accessToken = tokenProvider.createAccessToken(username);
+            return TokenDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+        } catch (ParseException | JOSEException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void requestPasswordReset(String username, ResetKeycloakPasswordCmd resetKeycloakPasswordCmd) {
-
+        try {
+            User user = userDomainRepository.getByUsername(username);
+            String token = tokenProvider.createResetToken(username);
+            String resetLink = "http://localhost:8888/api/authenticate/reset-password?token=" + token;
+            emailService.sendMailForResetPassWord(user.getEmail(), resetLink);
+        } catch (Exception ex) {
+            throw new RuntimeException("Cant make request");
+        }
     }
 
     @Override
     public void resetPassword(String token, ResetKeycloakPasswordCmd resetKeycloakPasswordCmd) {
+        try {
+            JWTClaimsSet claims = jwtUtils.extractClaims(token);
+            String username = claims.getSubject();
+            User user = userDomainRepository.getByUsername(username);
+            user.changePassword(passwordEncoder.encode(resetKeycloakPasswordCmd.getValue()));
 
+            var keycloakToken = keycloakIdentityClient.getToken(GetTokenRequest.builder()
+                    .grant_type("client_credentials")
+                    .client_id(clientId)
+                    .client_secret(clientSecret)
+                    .scope("openid")
+                    .build());
+            keycloakIdentityClient.resetPassword("Bearer " + keycloakToken.getAccessToken(), user.getKeycloakUserId().toString(), resetKeycloakPasswordCmd);
+            WriteLogCmd cmd = commandMapper.from("Change password");
+            UserActivityLog userActivityLog = new UserActivityLog(cmd);
+            user.setUserActivityLog(userActivityLog);
+            userDomainRepository.save(user);
+            emailService.sendMailAlert(user.getEmail(), "change_password");
+
+        } catch (Exception ex) {
+            throw new RuntimeException("Cant make request");
+        }
     }
 }

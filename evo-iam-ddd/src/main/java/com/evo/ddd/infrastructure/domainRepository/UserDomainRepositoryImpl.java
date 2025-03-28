@@ -18,6 +18,7 @@ import com.evo.ddd.infrastructure.persistence.repository.UserRoleEntityRepositor
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -58,13 +59,17 @@ public class UserDomainRepositoryImpl extends AbstractDomainRepository<User, Use
     @Transactional
     public User save(User domainModel) {
         UserEntity userEntity = userEntityMapper.toEntity(domainModel);
-        UserRole userRole = domainModel.getUserRole();
-        UserRoleEntity userRoleEntity = userRoleEntityMapper.toEntity(userRole);
-        userRoleEntityRepository.save(userRoleEntity);
-        UserActivityLog userActivityLog = domainModel.getUserActivityLog();
-        UserActivityLogEntity userActivityLogEntity = userActivityLogEntityMapper.toEntity(userActivityLog);
+        userEntity = userEntityRepository.save(userEntity);
+
+        List<UserRoleEntity> userRoleEntities = domainModel.getUserRole().stream()
+                .map(userRoleEntityMapper::toEntity)
+                .toList();
+        userRoleEntityRepository.saveAll(userRoleEntities); // Save all roles at once
+
+        UserActivityLogEntity userActivityLogEntity = userActivityLogEntityMapper.toEntity(domainModel.getUserActivityLog());
         userActivityLogEntityRepository.save(userActivityLogEntity);
-        return userEntityMapper.toDomainModel(userEntityRepository.save(userEntity));
+
+        return userEntityMapper.toDomainModel(userEntity);
     }
 
     @Override
@@ -75,20 +80,24 @@ public class UserDomainRepositoryImpl extends AbstractDomainRepository<User, Use
     @Override
     public User getByUsername(String username) {
         UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-        System.out.println(userEntity);
         return this.enrich(userEntityMapper.toDomainModel(userEntity));
     }
 
     @Override
     protected List<User> enrichList(List<User> users) {
         if (users.isEmpty()) return users;
+
         List<UUID> userIds = users.stream().map(User::getUserID).toList();
-        Map<UUID, UserRole> userRoleMap = userRoleEntityRepository.findByUserIdIn(userIds).stream()
+
+        Map<UUID, List<UserRole>> userRoleMap = userRoleEntityRepository.findByUserIdIn(userIds).stream()
                 .map(userRoleEntityMapper::toDomainModel)
-                .collect(Collectors.toMap(UserRole::getUserId, userRole -> userRole));
-        users.forEach(user -> user.setUserRole(userRoleMap.getOrDefault(user.getUserID(), new UserRole())));
+                .collect(Collectors.groupingBy(UserRole::getUserId));
+
+        users.forEach(user -> user.setUserRole(userRoleMap.getOrDefault(user.getUserID(), new ArrayList<>())));
+
         return users;
     }
+
 
     @Override
     public boolean existsByUsername(String username) {

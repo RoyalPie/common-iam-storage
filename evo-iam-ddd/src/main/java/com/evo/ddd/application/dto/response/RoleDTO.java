@@ -15,8 +15,8 @@ import java.util.UUID;
 public class RoleDTO {
     private UUID id;
     private String name;
-    private String description;
     private boolean isRoot;
+    private boolean isDeleted;
     private String createdBy;
     private String lastModifiedBy;
     private Instant createdAt;

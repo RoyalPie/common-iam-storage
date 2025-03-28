@@ -1,6 +1,6 @@
 package com.evo.ddd.infrastructure.adapter.keycloak;
 
-import com.evo.ddd.application.dto.request.GetTokenRequest;
+import com.evo.ddd.application.dto.request.identityKeycloak.GetTokenRequest;
 import com.evo.ddd.application.dto.response.TokenDTO;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;

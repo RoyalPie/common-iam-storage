@@ -34,17 +34,19 @@ public class AuthorityQueryServiceImpl implements AuthorityService {
     @Override
     public UserAuthority getUserAuthority(String username) {
         User user = userDomainRepository.getByUsername(username);
-        UserRole userRole = user.getUserRole();
-        Role role = roleDomainRepository.getById(userRole.getRoleId());
-        boolean isRoot = role.isRoot();
-        List<Permission> permissions = roleDomainRepository.findPermissionByRoleId(userRole.getRoleId());
-        List<String> grantedPermissions = List.of();
-        if (permissions != null && !permissions.isEmpty()) {
-            grantedPermissions = permissions.stream()
-                    .filter(Objects::nonNull) // Lọc các phần tử null nếu có
-                    .map(permission -> permission.getResource() + "." + permission.getScope())
-                    .toList();
-        }
+        List<UserRole> userRoles = user.getUserRole();
+        List<Role> roles = userRoles.stream()
+                .map(userRole -> roleDomainRepository.getById(userRole.getRoleId()))
+                .toList();
+        boolean isRoot = roles.stream().anyMatch(Role::isRoot);
+        List<Permission> allPermissions = roles.stream()
+                .flatMap(role -> roleDomainRepository.findPermissionByRoleId(role.getId()).stream())
+                .toList();
+        List<String> grantedPermissions = allPermissions.stream()
+                .filter(Objects::nonNull)
+                .map(permission -> permission.getResource() + "." + permission.getScope())
+                .toList();
+
         return UserAuthority.builder()
                 .userId(user.getUserID())
                 .isRoot(isRoot)

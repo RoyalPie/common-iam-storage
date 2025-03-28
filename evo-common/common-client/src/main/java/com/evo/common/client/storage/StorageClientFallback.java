@@ -1,19 +1,12 @@
 package com.evo.common.client.storage;
 
-import com.evo.common.UserAuthority;
-import com.evo.common.client.iam.IamClient;
-import com.evo.common.dto.FileResponse;
-import com.evo.common.dto.response.Response;
-import com.evo.common.enums.ServiceUnavailableError;
-import com.evo.common.exception.ForwardInnerAlertException;
-import com.evo.common.exception.ResponseException;
+import com.evo.common.dto.response.FileResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class StorageClientFallback implements FallbackFactory<StorageClient> {

@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class PermissionDTO {
     private UUID id;
-    private String resourceId;
+    private String resource;
     private String scope;
     private String createdBy;
     private String lastModifiedBy;
