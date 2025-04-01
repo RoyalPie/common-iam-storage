@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface FileCommandService {
-    List<FileResponse> storeFile(List<MultipartFile> files, boolean isPublic, String description);
+    List<FileResponse> storeFile(List<MultipartFile> files, boolean isPublic);
     FileResponse updateFile(UpdateFileRequest updateFileRequest);
     void deleteFile(UUID fileId);
 }

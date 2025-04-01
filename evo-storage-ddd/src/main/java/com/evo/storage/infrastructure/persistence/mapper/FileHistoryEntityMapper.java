@@ -5,6 +5,6 @@ import com.evo.storage.domain.FileHistory;
 import com.evo.storage.infrastructure.persistence.entity.FileHistoryEntity;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "Spring")
+@Mapper(componentModel = "spring")
 public interface FileHistoryEntityMapper extends EntityMapper<FileHistory, FileHistoryEntity> {
 }

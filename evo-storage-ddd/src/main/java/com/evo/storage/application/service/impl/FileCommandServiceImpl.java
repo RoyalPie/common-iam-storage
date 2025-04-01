@@ -1,6 +1,7 @@
 package com.evo.storage.application.service.impl;
 
 import com.evo.common.dto.response.FileResponse;
+import com.evo.storage.application.config.FileUploadConfig;
 import com.evo.storage.application.dto.mapper.FileResponseMapper;
 import com.evo.storage.application.dto.request.UpdateFileRequest;
 import com.evo.storage.application.mapper.CommandMapper;
@@ -13,8 +14,8 @@ import com.evo.storage.domain.command.WriteHistoryCmd;
 import com.evo.storage.domain.repository.FileDomainRepository;
 import com.evo.storage.infrastructure.support.exception.AppErrorCode;
 import com.evo.storage.infrastructure.support.exception.AppException;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,27 +23,24 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class FileCommandServiceImpl implements FileCommandService {
-    private Path publicStorageLocation;
-    private Path privateStorageLocation;
-    private final FileStorageProperties fileStorageProperties;
+    @Value("${file.storage.path}")
+    Path storageLocation;
+    private final FileUploadConfig fileUploadConfig;
     private final FileDomainRepository fileDomainRepository;
     private final FileResponseMapper fileResponseMapper;
     private final CommandMapper commandMapper;
 
 
     @Override
-    public List<FileResponse> storeFile(List<MultipartFile> files, boolean isPublic, String description) {
+    public List<FileResponse> storeFile(List<MultipartFile> files, boolean isPublic) {
         List<File> fileDomains = new ArrayList<>();
         for(MultipartFile file : files) {
             try {
@@ -50,15 +48,17 @@ public class FileCommandServiceImpl implements FileCommandService {
                 if (isImage(file)) {
                     BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
                 }
+                String originalFileName = file.getOriginalFilename();
+                String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
                 StoreFileCmd storeFilecmd = StoreFileCmd.builder()
-                        .originName(file.getOriginalFilename())
-                        .fileType(file.getContentType())
+                        .originName(originalFileName)
+                        .fileType(fileExtension)
+                        .mimeType(file.getContentType())
                         .fileSize(file.getSize())
                         .isPublic(isPublic)
                         .build();
-
+                System.out.println(file.getContentType());
                 File fileDomain = new File(storeFilecmd);
-                Path storageLocation = isPublic ? publicStorageLocation : privateStorageLocation;
                 Path targetLocation = storageLocation.resolve(fileDomain.getMd5Name());
                 file.transferTo(targetLocation.toFile());
 
@@ -106,18 +106,15 @@ public class FileCommandServiceImpl implements FileCommandService {
     }
 
     public void validateFile(MultipartFile file) {
-        List<String> allowedMimeTypes = Arrays.asList(fileStorageProperties.getAllowedTypes().split(","));
-        List<String> allowedExtensions = Arrays.asList(fileStorageProperties.getAllowedExtensions().split(","));
-
         String contentType = file.getContentType();
         String fileName = file.getOriginalFilename();
         String fileExtension = StringUtils.getFilenameExtension(fileName);
 
-        if (contentType == null || !allowedMimeTypes.contains(contentType)) {
+        if (contentType == null || !fileUploadConfig.getAllowedMimeTypes().contains(contentType)) {
             throw new AppException(AppErrorCode.FILE_TYPE_NOT_ALLOWED);
         }
 
-        if (fileExtension == null || !allowedExtensions.contains(fileExtension.toLowerCase())) {
+        if (fileExtension == null || !fileUploadConfig.getAllowedExtensions().contains(fileExtension.toLowerCase())) {
             throw new AppException(AppErrorCode.FILE_EXTENSION_NOT_ALLOWED);
         }
     }

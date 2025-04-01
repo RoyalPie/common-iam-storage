@@ -11,8 +11,8 @@ public class StoreFileCmd {
     private int UUID;
     private String originName;
     private String fileType;
+    private String mimeType;
     private Long fileSize;
-    private String description;
     private String url;
     private Boolean isPublic;
 }

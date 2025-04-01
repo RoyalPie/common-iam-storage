@@ -1,5 +1,6 @@
 package com.evo.ddd.application.service.impl.command;
 
+import com.evo.common.dto.response.FileResponse;
 import com.evo.ddd.application.dto.mapper.UserDTOMapper;
 import com.evo.ddd.application.dto.request.ChangePasswordRequest;
 import com.evo.ddd.application.dto.request.CreateUserRequest;
@@ -19,6 +20,7 @@ import com.evo.ddd.infrastructure.adapter.keycloak.KeycloakCommandClient;
 import com.evo.ddd.infrastructure.adapter.keycloak.KeycloakIdentityClient;
 import com.evo.ddd.infrastructure.adapter.keycloak.KeycloakQueryClient;
 import com.evo.ddd.infrastructure.adapter.mail.EmailService;
+import com.evo.ddd.infrastructure.adapter.storage.FileService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final KeycloakQueryClient keycloakQueryClient;
     private final KeycloakIdentityClient keycloakIdentityClient;
     private final EmailService emailService;
+    private final FileService fileService;
 
     @Value("${keycloak.enabled}") boolean keycloakEnabled;
 
@@ -119,13 +122,16 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     public UUID changeAvatar(String username, List<MultipartFile> files) {
-//        User user = userDomainRepository.getByUsername(username);
-//        FileResponse fileResponse = fileService.uploadFile(files, true, "avatar").getFirst();
-//        UUID avatarId = fileResponse.getId();
-//        user.changeAvatar(avatarId);
-//        userDomainRepository.save(user);
-//        return avatarId;
-        return UUID.randomUUID();
+        User user = userDomainRepository.getByUsername(username);
+        FileResponse fileResponse = fileService.uploadFile(files).getFirst();
+        UUID avatarId = fileResponse.getId();
+        user.changeAvatar(avatarId);
+        WriteLogCmd logCmd = new WriteLogCmd();
+        logCmd.setActivity("CHANGE_AVATAR");
+        UserActivityLog log = new UserActivityLog(logCmd);
+        user.setUserActivityLog(log);
+        userDomainRepository.save(user);
+        return avatarId;
     }
 
     @Override
