@@ -12,7 +12,6 @@ import lombok.experimental.SuperBuilder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = false)
@@ -39,12 +38,13 @@ public class File extends Auditor {
         this.originName = cmd.getOriginName();
         this.md5Name = hashFileName(cmd.getOriginName());
         this.fileType = cmd.getFileType();
+        this.mimeType = cmd.getMimeType();
         this.fileSize = cmd.getFileSize();
         this.isPublic = cmd.getIsPublic();
         if (isPublic) {
             this.url = "http://localhost:8080/api/public/file/" + this.id;
         } else {
-            this.url = "http://localhost:8080/api/file/" + this.id;
+            this.url = "http://localhost:8083/api/file/" + this.id;
         }
     }
 

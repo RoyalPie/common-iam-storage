@@ -1,6 +1,7 @@
 package com.evo.common.client.storage;
 
 import com.evo.common.config.StorageClientConfiguration;
+import com.evo.common.dto.response.ApiResponses;
 import com.evo.common.dto.response.FileResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -19,8 +20,11 @@ public interface StorageClient {
     @PostMapping(value = "/api/public/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     List<FileResponse> uploadPublicFiles(@RequestPart("file") MultipartFile[] files);
 
-    @PostMapping(value = "/api/private/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    List<FileResponse> uploadPriavteFiles(@RequestPart("file") MultipartFile[] files);
+    @PostMapping(value = "/api/file/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ApiResponses<List<FileResponse>> uploadPriavteFiles(@RequestPart("files") List<MultipartFile> files);
+
+    @PatchMapping(value = "/api/private/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    List<FileResponse> uploadAvatar(@RequestPart("files") List<MultipartFile> files);
 
 //    @PutMapping(value = "/api/file/update", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 //    Response<FileResponse> updateFile(@RequestBody UpdateFileRequest updateFileRequest);

@@ -1,5 +1,6 @@
 package com.evo.common.client.storage;
 
+import com.evo.common.dto.response.ApiResponses;
 import com.evo.common.dto.response.FileResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
@@ -30,7 +31,12 @@ public class StorageClientFallback implements FallbackFactory<StorageClient> {
         }
 
         @Override
-        public List<FileResponse> uploadPriavteFiles(MultipartFile[] files) {
+        public ApiResponses<List<FileResponse>> uploadPriavteFiles(List<MultipartFile> files) {
+            return null;
+        }
+
+        @Override
+        public List<FileResponse> uploadAvatar(List<MultipartFile> files) {
             return List.of();
         }
     }

@@ -48,7 +48,7 @@ public class UserEntity extends AuditEntity {
     private String password;
 
     @Column(name = "avatar_picture_id")
-    private String avatarId;
+    private String avatarFileId;
 
     @Size(max = 15)
     @Column(name = "phone_number")

@@ -12,5 +12,4 @@ import java.util.UUID;
 public class UpdateFileCmd {
     private UUID fileId;
     private String originName;
-    private String description;
 }
