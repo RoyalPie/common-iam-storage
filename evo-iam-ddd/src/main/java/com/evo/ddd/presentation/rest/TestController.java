@@ -1,5 +1,6 @@
 package com.evo.ddd.presentation.rest;
 
+import com.evo.common.dto.event.SyncUserEvent;
 import com.evo.common.dto.request.SyncUserRequest;
 import com.evo.ddd.application.mapper.SyncMapper;
 import com.evo.ddd.domain.User;
@@ -25,8 +26,12 @@ public class TestController {
     public void test(Authentication authentication) {
         User user = userDomainRepository.getByUsername(authentication.getName());
         SyncUserRequest request = syncMapper.from(user);
+        SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                .syncAction("USER_CREATED")
+                .syncUserRequest(request)
+                .build();
 
-        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send("sync-user", request);
+        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send("sync-user", syncUserEvent);
         future.whenComplete((result, ex) -> {
             if (ex == null) {
                 System.out.println("Sent message=[" + result +
