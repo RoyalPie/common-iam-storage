@@ -62,7 +62,7 @@ public class PrivateFileController {
     }
 
     @PreAuthorize("hasPermission(null, 'file.admin')")
-    @GetMapping("")
+    @GetMapping("/file")
     public ApiResponses<List<FileResponse>> searchFiles(@RequestBody SearchFileRequest searchFileRequest) {
         return fileQueryService.search(searchFileRequest);
     }

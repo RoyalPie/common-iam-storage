@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.evo</groupId>
-	<artifactId>storage-ddd</artifactId>
+	<artifactId>storage</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>storage</name>
 	<description>Storage project for Spring Boot</description>
@@ -76,6 +76,10 @@
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct-processor</artifactId>
 			<version>1.6.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
 		</dependency>
 	</dependencies>
 

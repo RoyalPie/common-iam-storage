@@ -39,7 +39,7 @@ public class KeycloakAuthCommandServiceImpl implements AuthServiceCommand {
 
     @Value("${keycloak.iam.client-id}")
     private String clientId;
-    @Value("${keycloak.iam..client-secret}")
+    @Value("${keycloak.iam.client-secret}")
     private String clientSecret;
 
     @Override
@@ -133,5 +133,6 @@ public class KeycloakAuthCommandServiceImpl implements AuthServiceCommand {
 
     @Override
     public void resetPassword(String token, ResetKeycloakPasswordCmd resetKeycloakPasswordCmd) {
+        // @TODO
     }
 }

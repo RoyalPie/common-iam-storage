@@ -44,7 +44,6 @@ public class AuthController {
         }
         this.authServiceCommand = serviceStrategy.getAuthServiceCommand(typeAuthCommandService);
         this.authServiceQuery = serviceStrategy.getAuthServiceQuery(typeAuthQueryService);
-        System.out.println("AuthServiceCommand initialized: " + (this.authServiceCommand != null));
     }
 
     @PostMapping("/login")

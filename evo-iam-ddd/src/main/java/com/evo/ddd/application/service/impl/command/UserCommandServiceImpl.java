@@ -1,5 +1,6 @@
 package com.evo.ddd.application.service.impl.command;
 
+import com.evo.common.dto.request.SyncUserRequest;
 import com.evo.common.dto.response.FileResponse;
 import com.evo.ddd.application.dto.mapper.UserDTOMapper;
 import com.evo.ddd.application.dto.request.ChangePasswordRequest;
@@ -8,6 +9,7 @@ import com.evo.ddd.application.dto.request.CreateUserRoleRequest;
 import com.evo.ddd.application.dto.request.UpdateUserRequest;
 import com.evo.ddd.application.dto.response.UserDTO;
 import com.evo.ddd.application.mapper.CommandMapper;
+import com.evo.ddd.application.mapper.SyncMapper;
 import com.evo.ddd.application.service.UserCommandService;
 import com.evo.ddd.domain.Role;
 import com.evo.ddd.domain.User;
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,6 +54,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final KeycloakIdentityClient keycloakIdentityClient;
     private final EmailService emailService;
     private final FileService fileService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final SyncMapper syncMapper;
 
     @Value("${keycloak.enabled}") boolean keycloakEnabled;
 
@@ -72,6 +77,8 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.setUserRole(userRoles);
             user.setUserActivityLog(log);
             user = userDomainRepository.save(user);
+            SyncUserRequest syncUserRequest = syncMapper.from(user);
+            kafkaTemplate.send("sync-user", syncUserRequest);
             return userDTOMapper.domainModelToDTO(user);
         } catch (FeignException e) {
             throw new RuntimeException("Cant create user");
