@@ -7,10 +7,7 @@ import com.evo.elasticsearch.application.service.UserQueryService;
 import com.evo.elasticsearch.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,7 +18,7 @@ public class SearchController {
     private final UserQueryService userQueryService;
 
     @PreAuthorize("hasPermission('user', 'admin')")
-    @PostMapping("/user/search")
+    @GetMapping("/user")
     PageApiResponse<List<User>> searchUser(@RequestBody SearchUserRequest request) {
         SearchUserResponse searchUserResponse = userQueryService.searchUser(request);
         PageApiResponse.PageableResponse pageableResponse = PageApiResponse.PageableResponse.builder()

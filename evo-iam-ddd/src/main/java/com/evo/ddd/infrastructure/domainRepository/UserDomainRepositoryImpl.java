@@ -84,6 +84,12 @@ public class UserDomainRepositoryImpl extends AbstractDomainRepository<User, Use
     }
 
     @Override
+    public List<User> getAll() {
+        List<UserEntity> users = userEntityRepository.findAll();
+        return this.enrichList(userEntityMapper.toDomainModelList(users));
+    }
+
+    @Override
     protected List<User> enrichList(List<User> users) {
         if (users.isEmpty()) return users;
 

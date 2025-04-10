@@ -1,20 +1,28 @@
 package com.evo.elasticsearch.infrastructure.persistence.document;
 
+import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.*;
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 
+@Document(indexName = "user-document")
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDocument {
     @Id
     @Field(type = FieldType.Keyword)
     private UUID userID;
     @Field(type = FieldType.Keyword)
     private UUID keycloakUserId;
-    @Field(type = FieldType.Text)
+    @MultiField(mainField = @Field(type = FieldType.Text),
+            otherFields = {
+                    @InnerField(suffix = "sort", type = FieldType.Keyword)
+            })
     private String username;
     @Field(type = FieldType.Text)
     private String email;
@@ -32,5 +40,7 @@ public class UserDocument {
     private int yearsOfExperience;
     @Field(type = FieldType.Keyword)
     private boolean active;
+    @Field(type = FieldType.Keyword)
+    private boolean deleted;
 
 }

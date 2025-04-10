@@ -25,6 +25,7 @@ public class User {
     private String address;
     private int yearsOfExperience;
     private boolean active;
+    private boolean deleted;
 
     public User(SyncUserCmd cmd){
         this.userID = cmd.getUserID();
@@ -37,7 +38,7 @@ public class User {
         this.address = cmd.getAddress();
         this.yearsOfExperience = cmd.getYearsOfExperience();
         this.active = cmd.isActive();
-
+        this.deleted = cmd.isDeleted();
     }
     public void update(SyncUserCmd cmd) {
         if(cmd.getEmail() != null) {
@@ -63,6 +64,9 @@ public class User {
         }
         if(cmd.isActive() != false) {
             this.active = cmd.isActive();
+        }
+        if(cmd.isDeleted() != false) {
+            this.deleted = cmd.isDeleted();
         }
     }
 }

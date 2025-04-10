@@ -22,4 +22,5 @@ public class SyncUserCmd {
     private String address;
     private int yearsOfExperience;
     private boolean active;
+    private boolean deleted;
 }

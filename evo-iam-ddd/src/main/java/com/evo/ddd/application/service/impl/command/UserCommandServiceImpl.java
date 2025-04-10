@@ -1,5 +1,6 @@
 package com.evo.ddd.application.service.impl.command;
 
+import com.evo.common.dto.event.SyncUserEvent;
 import com.evo.common.dto.request.SyncUserRequest;
 import com.evo.common.dto.response.FileResponse;
 import com.evo.ddd.application.dto.mapper.UserDTOMapper;
@@ -78,7 +79,11 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.setUserActivityLog(log);
             user = userDomainRepository.save(user);
             SyncUserRequest syncUserRequest = syncMapper.from(user);
-            kafkaTemplate.send("sync-user", syncUserRequest);
+            SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                    .syncAction("CREATE_USER")
+                    .syncUserRequest(syncUserRequest)
+                    .build();
+            kafkaTemplate.send("sync-user", syncUserEvent);
             return userDTOMapper.domainModelToDTO(user);
         } catch (FeignException e) {
             throw new RuntimeException("Cant create user");
@@ -138,6 +143,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         UserActivityLog log = new UserActivityLog(logCmd);
         user.setUserActivityLog(log);
         userDomainRepository.save(user);
+        SyncUserRequest syncUserRequest = syncMapper.from(user);
+        SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                .syncAction("UPDATE_USER")
+                .syncUserRequest(syncUserRequest)
+                .build();
+        kafkaTemplate.send("sync-user", syncUserEvent);
         return avatarId;
     }
 
@@ -261,6 +272,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         UpdateUserCmd cmd = commandMapper.from(updateUserRequest);
         User user = userDomainRepository.getByUsername(username);
         user.update(cmd);
+        SyncUserRequest syncUserRequest = syncMapper.from(user);
+        SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                .syncAction("UPDATE_USER")
+                .syncUserRequest(syncUserRequest)
+                .build();
+        kafkaTemplate.send("sync-user", syncUserEvent);
         return userDTOMapper.domainModelToDTO(userDomainRepository.save(user));
     }
 
@@ -269,6 +286,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userDomainRepository.getByUsername(username);
         user.setActive(!enabled);
         userDomainRepository.save(user);
+        SyncUserRequest syncUserRequest = syncMapper.from(user);
+        SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                .syncAction("UPDATE_USER")
+                .syncUserRequest(syncUserRequest)
+                .build();
+        kafkaTemplate.send("sync-user", syncUserEvent);
         String token = keycloakQueryClient.getClientToken();
         keycloakIdentityClient.lockUser("Bearer " + token, user.getKeycloakUserId().toString(), LockUserCmd.builder().enabled(enabled).build());
     }
