@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.evo</groupId>
-	<artifactId>storage-ddd</artifactId>
+	<artifactId>storage</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>storage</name>
 	<description>Storage project for Spring Boot</description>
@@ -77,6 +77,10 @@
 			<artifactId>mapstruct-processor</artifactId>
 			<version>1.6.3</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -84,7 +88,7 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>  <!-- Ensure this version is correct -->
+				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

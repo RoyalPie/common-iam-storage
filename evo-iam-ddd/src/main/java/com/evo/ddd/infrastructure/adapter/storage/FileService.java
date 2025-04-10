@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public interface FileService {
     List<FileResponse> uploadFile(List<MultipartFile> files);
+    void kafkaUloadFile();
 //    FileResponse getFile(UUID fileId);
 //    FileResponse updateFile(UpdateFileRequest updateFileRequest);
 //    void deleteFile(UUID fileId);

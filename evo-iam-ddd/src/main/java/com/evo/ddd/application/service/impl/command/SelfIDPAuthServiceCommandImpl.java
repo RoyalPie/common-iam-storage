@@ -53,7 +53,7 @@ public class SelfIDPAuthServiceCommandImpl implements AuthServiceCommand {
     private Long refreshExpiration;
     @Value("${keycloak.iam.client-id}")
     private String clientId;
-    @Value("${keycloak.iam..client-secret}")
+    @Value("${keycloak.iam.client-secret}")
     private String clientSecret;
 
     @Override

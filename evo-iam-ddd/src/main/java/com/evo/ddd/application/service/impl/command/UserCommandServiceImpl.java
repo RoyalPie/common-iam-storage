@@ -1,5 +1,7 @@
 package com.evo.ddd.application.service.impl.command;
 
+import com.evo.common.dto.event.SyncUserEvent;
+import com.evo.common.dto.request.SyncUserRequest;
 import com.evo.common.dto.response.FileResponse;
 import com.evo.ddd.application.dto.mapper.UserDTOMapper;
 import com.evo.ddd.application.dto.request.ChangePasswordRequest;
@@ -8,6 +10,7 @@ import com.evo.ddd.application.dto.request.CreateUserRoleRequest;
 import com.evo.ddd.application.dto.request.UpdateUserRequest;
 import com.evo.ddd.application.dto.response.UserDTO;
 import com.evo.ddd.application.mapper.CommandMapper;
+import com.evo.ddd.application.mapper.SyncMapper;
 import com.evo.ddd.application.service.UserCommandService;
 import com.evo.ddd.domain.Role;
 import com.evo.ddd.domain.User;
@@ -26,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,6 +55,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final KeycloakIdentityClient keycloakIdentityClient;
     private final EmailService emailService;
     private final FileService fileService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final SyncMapper syncMapper;
 
     @Value("${keycloak.enabled}") boolean keycloakEnabled;
 
@@ -72,6 +78,12 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.setUserRole(userRoles);
             user.setUserActivityLog(log);
             user = userDomainRepository.save(user);
+            SyncUserRequest syncUserRequest = syncMapper.from(user);
+            SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                    .syncAction("CREATE_USER")
+                    .syncUserRequest(syncUserRequest)
+                    .build();
+            kafkaTemplate.send("sync-user", syncUserEvent);
             return userDTOMapper.domainModelToDTO(user);
         } catch (FeignException e) {
             throw new RuntimeException("Cant create user");
@@ -131,6 +143,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         UserActivityLog log = new UserActivityLog(logCmd);
         user.setUserActivityLog(log);
         userDomainRepository.save(user);
+        SyncUserRequest syncUserRequest = syncMapper.from(user);
+        SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                .syncAction("UPDATE_USER")
+                .syncUserRequest(syncUserRequest)
+                .build();
+        kafkaTemplate.send("sync-user", syncUserEvent);
         return avatarId;
     }
 
@@ -254,6 +272,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         UpdateUserCmd cmd = commandMapper.from(updateUserRequest);
         User user = userDomainRepository.getByUsername(username);
         user.update(cmd);
+        SyncUserRequest syncUserRequest = syncMapper.from(user);
+        SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                .syncAction("UPDATE_USER")
+                .syncUserRequest(syncUserRequest)
+                .build();
+        kafkaTemplate.send("sync-user", syncUserEvent);
         return userDTOMapper.domainModelToDTO(userDomainRepository.save(user));
     }
 
@@ -262,6 +286,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userDomainRepository.getByUsername(username);
         user.setActive(!enabled);
         userDomainRepository.save(user);
+        SyncUserRequest syncUserRequest = syncMapper.from(user);
+        SyncUserEvent syncUserEvent = SyncUserEvent.builder()
+                .syncAction("UPDATE_USER")
+                .syncUserRequest(syncUserRequest)
+                .build();
+        kafkaTemplate.send("sync-user", syncUserEvent);
         String token = keycloakQueryClient.getClientToken();
         keycloakIdentityClient.lockUser("Bearer " + token, user.getKeycloakUserId().toString(), LockUserCmd.builder().enabled(enabled).build());
     }
