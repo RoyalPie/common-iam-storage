@@ -39,7 +39,7 @@ public class JwtUtils {
         return null;
     }
     public static String getTokenSignature(String token) throws NoSuchAlgorithmException {
-        String[] parts = token.split("\\."); // JWT format: header.payload.signature
+        String[] parts = token.split("\\.");
         String signature = parts[2];
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");

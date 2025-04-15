@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Nemo
+      changes:
+        - insert:
+            tableName: notification
+            columns:
+              - column:
+                  name: id
+                  value: "9e1bea23-55cc-4878-b3a0-3c90c21a9cde"
+              - column:
+                  name: body
+                  value: "John noti"
+              - column:
+                  name: token
+                  value: "9e1bea23-55cc-4878-b3a0-3c90c21a9cde"
+              - column:
+                  name: user_id
+                  value: "9e1bea23-55cc-4878-b3a0-3c90c21a9cde"
+  - changeSet:
+     id: 2
+     author: tk
+     changes:
+         - delete:
+             tableName: notification
+             where: id = '9e1bea23-55cc-4878-b3a0-3c90c21a9cde'
