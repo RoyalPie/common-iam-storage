@@ -1,7 +1,6 @@
 package com.evo.ddd.infrastructure.domainRepository;
 
 import com.evo.ddd.domain.User;
-import com.evo.ddd.domain.UserActivityLog;
 import com.evo.ddd.domain.UserRole;
 import com.evo.ddd.domain.query.SearchUserQuery;
 import com.evo.ddd.domain.repository.UserDomainRepository;
