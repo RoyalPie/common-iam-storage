@@ -30,7 +30,7 @@ public interface KeycloakIdentityClient {
 
     @PostMapping(value = "/realms/testing-realm/protocol/openid-connect/logout",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    TokenDTO logout(
+    void logout(
             @RequestHeader("authorization") String token,
             @QueryMap LogoutRequest logoutRequest);
 

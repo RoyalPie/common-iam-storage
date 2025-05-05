@@ -9,7 +9,6 @@ import lombok.experimental.SuperBuilder;
 import java.util.Objects;
 import java.util.UUID;
 
-@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder

@@ -6,7 +6,6 @@ import com.evo.common.dto.response.FileResponse;
 import com.evo.ddd.application.dto.mapper.UserDTOMapper;
 import com.evo.ddd.application.dto.request.ChangePasswordRequest;
 import com.evo.ddd.application.dto.request.CreateUserRequest;
-import com.evo.ddd.application.dto.request.CreateUserRoleRequest;
 import com.evo.ddd.application.dto.request.UpdateUserRequest;
 import com.evo.ddd.application.dto.response.UserDTO;
 import com.evo.ddd.application.mapper.CommandMapper;
@@ -16,7 +15,13 @@ import com.evo.ddd.domain.Role;
 import com.evo.ddd.domain.User;
 import com.evo.ddd.domain.UserActivityLog;
 import com.evo.ddd.domain.UserRole;
-import com.evo.ddd.domain.command.*;
+import com.evo.ddd.domain.command.ChangePasswordCmd;
+import com.evo.ddd.domain.command.CreateUserCmd;
+import com.evo.ddd.domain.command.CreateUserRoleCmd;
+import com.evo.ddd.domain.command.LockUserCmd;
+import com.evo.ddd.domain.command.ResetKeycloakPasswordCmd;
+import com.evo.ddd.domain.command.UpdateUserCmd;
+import com.evo.ddd.domain.command.WriteLogCmd;
 import com.evo.ddd.domain.repository.RoleDomainRepository;
 import com.evo.ddd.domain.repository.UserDomainRepository;
 import com.evo.ddd.infrastructure.adapter.keycloak.KeycloakCommandClient;
@@ -27,7 +32,11 @@ import com.evo.ddd.infrastructure.adapter.storage.FileService;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,7 +67,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final SyncMapper syncMapper;
 
-    @Value("${keycloak.enabled}") boolean keycloakEnabled;
+    @Value("${keycloak.enabled}")
+    boolean keycloakEnabled;
 
     @Override
     public UserDTO createDefaultUser(CreateUserRequest request) {
@@ -111,7 +121,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         UUID keycloakUserId = user.getKeycloakUserId();
 
         String token = keycloakQueryClient.getClientToken();
-        if(passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+        if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             ResetKeycloakPasswordCmd resetKeycloakPasswordCmd = ResetKeycloakPasswordCmd.builder().value(changePasswordCmd.getNewPassword()).build();
             keycloakCommandClient.resetPassword("Bearer " + token, keycloakUserId, resetKeycloakPasswordCmd);
 
